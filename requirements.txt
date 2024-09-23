@@ -4,5 +4,10 @@ autopep8
 Gunicorn
 
 # App
-flask
+Flask
+Gunicorn
+Flask
+Gunicorn
 pusher
+mysql-connector-python
+pytz
