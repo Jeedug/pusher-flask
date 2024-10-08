@@ -1,58 +1,263 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hello World</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pago de Curso</title>
   <script src="https://js.pusher.com/8.2.0/pusher.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-black text-white p-4">
-  <h1 class="text-blue-500 text-xl mb-4">Hello World</h1>
-  <div class="w-full border py-2 px-2">
-    <button id="nuevaNota" class="border hover:bg-gray-700 transition bg-gray-800 text-white px-4 py-2 rounded">
-      Nueva nota
+<body class="bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-colors duration-500">
+  <div class="container mx-auto p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center">Formulario de Pago de Curso</h1>
+
+    <button id="toggle-theme"
+      class="mb-4 px-4 py-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition active:scale-95 dark:bg-blue-500 dark:hover:bg-blue-600">
+      Cambiar Tema
     </button>
+
+    <table class="min-w-full bg-white dark:bg-gray-700 shadow-md rounded-lg overflow-hidden">
+      <thead class="bg-gray-100 dark:bg-gray-600">
+        <tr>
+          <th class="py-2 px-4 font-semibold text-left">ID</th>
+          <th class="py-2 px-4 font-semibold text-left">Teléfono</th>
+          <th class="py-2 px-4 font-semibold text-left">Comprobante</th>
+          <th class="py-2 px-4 font-semibold text-left">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="telefono-table-body">
+        {% for row in data %}
+        <tr class="border-b dark:border-gray-500">
+          <td class="py-2 px-4">
+            <input type="text"
+              class="py-1 px-2 w-full bg-transparent border rounded-md dark:text-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value="{{ row[0] }}">
+          </td>
+          <td class="py-2 px-4">
+            <input type="number"
+              class="py-1 px-2 w-full bg-transparent border rounded-md dark:text-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              value="{{ row[1] }}">
+          </td>
+          <td class="py-2 px-4">
+            <input type="file"
+              class="py-1 px-2 w-full bg-transparent border rounded-md dark:text-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+              name="comprobante">
+          </td>
+          <td class="py-2 px-4 flex items-center justify-center">
+            <button
+              class="edit-button bg-yellow-500 hover:bg-yellow-600 transition rounded-md px-4 py-2 text-white font-semibold hidden">
+              Editar
+            </button>
+            <button
+              class="delete-button bg-red-500 hover:bg-red-600 transition rounded-md px-4 py-2 text-white font-semibold ml-2">
+              Eliminar
+            </button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <form id="pago-curso-form" enctype="multipart/form-data"
+      class="mt-6 bg-gray-100 dark:bg-gray-700 p-4 rounded-lg shadow-md">
+      <h2 class="text-lg font-semibold mb-4">Enviar Comprobante</h2>
+      <div class="mb-4">
+        <label for="telefono" class="block mb-1">Teléfono:</label>
+        <input type="text"
+          class="form-control w-full p-2 border rounded-md dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+          id="telefono" name="telefono" required>
+      </div>
+      <div class="mb-4">
+        <label for="comprobante" class="block mb-1">Comprobante:</label>
+        <input type="file"
+          class="form-control w-full p-2 border rounded-md dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+          id="comprobante" name="comprobante" accept=".jpg,.jpeg,.png,.pdf" required>
+      </div>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-md py-2 transition">Enviar
+        Comprobante</button>
+    </form>
   </div>
-  <div id="notificaciones" class="mt-4"></div>
+</body>
 
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const $ = sel => document.querySelector(sel);
-      const $$ = sel => document.querySelectorAll(sel);
 
-      Pusher.logToConsole = true;
+<script type="module">
+  tailwind.config = {
+    darkMode: 'class',
+  };
 
-      var pusher = new Pusher('0afe1c275b2ed6dbabd7', {
-        cluster: 'us2'
+  document.addEventListener("DOMContentLoaded", function () {
+    const darkMode = localStorage.getItem('dark-mode') === 'true';
+    document.documentElement.classList.toggle('dark', darkMode);
+    document.getElementById('toggle-theme').innerHTML = darkMode ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+
+    const editButtons = document.querySelectorAll('.edit-button');
+
+    const inputs = document.querySelectorAll('input[type="text"], input[type="number"]');
+
+    inputs.forEach(input => {
+      input.addEventListener('input', function () {
+        const row = this.closest('tr');
+        const editButton = row.querySelector('.edit-button');
+        const originalValue = this.defaultValue;
+
+        if (this.value !== originalValue) {
+          editButton.classList.remove('hidden');
+        } else {
+          editButton.classList.add('hidden');
+        }
       });
+    });
 
-      var channel = pusher.subscribe('my-channel');
-      channel.bind('my-event', function (data) {
-        const notificaciones = $('#notificaciones');
-        const mensaje = document.createElement('p');
-        mensaje.textContent = JSON.stringify(data);
-        notificaciones.appendChild(mensaje);
-        alert(mensaje)
+
+    const pusher = new Pusher('0afe1c275b2ed6dbabd7', {
+      cluster: 'us2'
+    });
+    const channel = pusher.subscribe('my-channel');
+    channel.bind('my-event', function (data) {
+      if (data.action === "update") {
+        const row = document.querySelector(`input[value="${data.id}"]`).closest('tr');
+        if (row) {
+          row.querySelector('input[type="number"]').value = data.telefono;
+        }
+      } else if (data.action === "delete") {
+        const row = document.querySelector(`input[value="${data.id}"]`).closest('tr');
+        if (row) {
+          row.remove(); // Elimina la fila de la tabla
+        }
+      } else {
+        const tbody = document.getElementById('telefono-table-body');
+        const newRow = document.createElement('tr');
+        newRow.innerHTML = `
+      <td class="py-2 px-4">
+        <input type="text"
+          class="py-1 px-2 w-full bg-transparent border rounded-md dark:text-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          value="${data.id}">
+      </td>
+      <td class="py-2 px-4">
+        <input type="number"
+          class="py-1 px-2 w-full bg-transparent border rounded-md dark:text-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          value="${data.telefono}">
+      </td>
+      <td class="py-2 px-4">
+        <input type="file"
+          class="py-1 px-2 w-full bg-transparent border rounded-md dark:text-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          name="comprobante">
+      </td>
+      <td class="py-2 px-4 flex items-center justify-center">
+        <button
+          class="edit-button bg-yellow-500 hover:bg-yellow-600 transition rounded-md px-4 py-2 text-white font-semibold hidden">
+          Editar
+        </button>
+        <button
+          class="delete-button bg-red-500 hover:bg-red-600 transition rounded-md px-4 py-2 text-white font-semibold ml-2">
+          Eliminar
+        </button>
+      </td>`;
+        tbody.appendChild(newRow);
+      }
+    });
+
+
+    document.querySelectorAll('.delete-button').forEach(button => {
+      button.addEventListener('click', function () {
+        const row = this.closest('tr');
+        const id_comprobante = row.querySelector('input[type="text"]').value; // Asegúrate de que este input contenga el ID
+
+        console.log("ID a eliminar:", id_comprobante); // Verifica aquí
+
+        fetch(`/eliminar-comprobante?id_comprobante=${id_comprobante}`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data.success) {
+              console.log("Comprobante eliminado correctamente.");
+              // Eliminar la fila de la tabla si se eliminó correctamente
+              row.remove(); // Esto elimina la fila correspondiente
+            } else {
+              console.error("Error al eliminar el comprobante:", data.message);
+            }
+          })
+          .catch(error => {
+            console.error("Error en la solicitud:", error);
+          });
       });
+    });
 
-      // Agregar evento de clic al botón "Nueva nota"
-      $('#nuevaNota').addEventListener('click', function() {
-        fetch('/nueva-nota', {
+
+    document.querySelectorAll('.edit-button').forEach(button => {
+      button.addEventListener('click', function () {
+        const row = this.closest('tr');
+        const id_comprobante = row.querySelector('input[type="text"]:nth-of-type(1)').value;
+        const telefono = row.querySelector('input[type="number"]').value;
+        const archivoInput = row.querySelector('input[type="file"]');
+
+        const data = new FormData(); // Usar FormData
+        data.append('id_comprobante', id_comprobante);
+        data.append('telefono', telefono);
+        if (archivoInput.files.length > 0) {
+          data.append('comprobante', archivoInput.files[0]); // Añadir archivo
+        }
+
+        fetch('/actualizar-comprobante', {
           method: 'POST',
+          body: data // Enviar FormData
         })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data.success) {
+              console.log("Comprobante actualizado correctamente.");
+              this.classList.add('hidden');
+            } else {
+              console.error("Error al actualizar el comprobante:", data.message);
+            }
+          })
+          .catch(error => {
+            console.error("Error en la solicitud:", error);
+          });
+      });
+    });
+
+
+
+    document.getElementById('pago-curso-form').addEventListener('submit', function (event) {
+      event.preventDefault();
+      var formData = new FormData(this);
+
+      fetch('/enviar-comprobante', {
+        method: 'POST',
+        body: formData
+      })
         .then(response => response.json())
         .then(data => {
           if (data.success) {
-            console.log('Nota creada exitosamente');
+            console.log("Comprobante enviado correctamente.");
+          } else {
+            console.error("Error al enviar el comprobante:", data.message);
           }
         })
-        .catch(error => console.error('Error:', error));
-      });
+        .catch(error => {
+          console.error("Error en la solicitud:", error);
+        });
     });
-  </script>
+
+    document.getElementById('toggle-theme').addEventListener('click', function () {
+      const isDarkMode = document.documentElement.classList.toggle('dark');
+      localStorage.setItem('dark-mode', isDarkMode);
+      this.innerHTML = isDarkMode ? '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-sun"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>' : '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-moon"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>';
+    });
+  });
+</script>
 </body>
 
 </html>
